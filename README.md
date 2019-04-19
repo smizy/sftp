@@ -28,7 +28,7 @@ This is an automated build linked with the [debian](https://hub.docker.com/_/deb
 - Mount volumes
   - The users are chrooted to their home directory, so you can mount the
     volumes in separate directories inside the user's home directory
-    (/home/user/**mounted-directory**) or just mount the whole **/home** directory.
+    (/chroot/home/user/**mounted-directory**) or just mount the whole **/chroot/home** directory.
     Just remember that the users can't create new files directly under their
     own home directory, so make sure there are at least one subdirectory if you
     want them to upload files.
@@ -50,7 +50,7 @@ Let's mount a directory and set UID:
 
 ```
 docker run \
-    -v /host/upload:/home/foo/upload \
+    -v /host/upload:/chroot/home/foo/upload \
     -p 2222:22 -d atmoz/sftp \
     foo:pass:1001
 ```
@@ -61,7 +61,7 @@ docker run \
 sftp:
     image: atmoz/sftp
     volumes:
-        - /host/upload:/home/foo/upload
+        - /host/upload:/chroot/home/foo/upload
     ports:
         - "2222:22"
     command: foo:pass:1001
@@ -76,7 +76,7 @@ The OpenSSH server runs by default on port 22, and in this example, we are forwa
 ```
 docker run \
     -v /host/users.conf:/etc/sftp/users.conf:ro \
-    -v mySftpVolume:/home \
+    -v mySftpVolume:/chroot/home \
     -p 2222:22 -d atmoz/sftp
 ```
 
@@ -94,7 +94,7 @@ Add `:e` behind password to mark it as encrypted. Use single quotes if using ter
 
 ```
 docker run \
-    -v /host/share:/home/foo/share \
+    -v /host/share:/chroot/home/foo/share \
     -p 2222:22 -d atmoz/sftp \
     'foo:$1$0G2g0GSt$ewU0t6GXG15.0hWoOX8X9.:e:1001'
 ```
@@ -108,9 +108,9 @@ Mount public keys in the user's `.ssh/keys/` directory. All keys are automatical
 
 ```
 docker run \
-    -v /host/id_rsa.pub:/home/foo/.ssh/keys/id_rsa.pub:ro \
-    -v /host/id_other.pub:/home/foo/.ssh/keys/id_other.pub:ro \
-    -v /host/share:/home/foo/share \
+    -v /host/id_rsa.pub:/chroot/home/foo/.ssh/keys/id_rsa.pub:ro \
+    -v /host/id_other.pub:/chroot/home/foo/.ssh/keys/id_other.pub:ro \
+    -v /host/share:/chroot/home/foo/share \
     -p 2222:22 -d atmoz/sftp \
     foo::1001
 ```
@@ -123,7 +123,7 @@ This container will generate new SSH host keys at first run. To avoid that your 
 docker run \
     -v /host/ssh_host_ed25519_key:/etc/ssh/ssh_host_ed25519_key \
     -v /host/ssh_host_rsa_key:/etc/ssh/ssh_host_rsa_key \
-    -v /host/share:/home/foo/share \
+    -v /host/share:/chroot/home/foo/share \
     -p 2222:22 -d atmoz/sftp \
     foo::1001
 ```
@@ -159,10 +159,10 @@ function bindmount() {
 # Remember permissions, you may have to fix them:
 # chown -R :users /data/common
 
-bindmount /data/admin-tools /home/admin/tools
-bindmount /data/common /home/dave/common
-bindmount /data/common /home/peter/common
-bindmount /data/docs /home/peter/docs --read-only
+bindmount /data/admin-tools /chroot/home/admin/tools
+bindmount /data/common /chroot/home/dave/common
+bindmount /data/common /chroot/home/peter/common
+bindmount /data/docs /chroot/home/peter/docs --read-only
 ```
 
 **NOTE:** Using `mount` requires that your container runs with the `CAP_SYS_ADMIN` capability turned on. [See this answer for more information](https://github.com/atmoz/sftp/issues/60#issuecomment-332909232).
